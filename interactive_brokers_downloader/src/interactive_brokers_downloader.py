@@ -28,14 +28,18 @@ class InteractiveBrokersDownloader:
         now = datetime.now().strftime("%Y_%m_%d_%H%M%S")
         logging.basicConfig(filename=f"logs/api_{now}.log", level=logging.INFO)
 
-    def _load_and_unpack_appsettings(self, path: str = "./appsettings.json") -> None:
+    def _load_and_unpack_appsettings(self, path: str = "appsettings.json") -> None:
 
         attrs_mandatory_error = ['history_length_days']
         attrs_mandatory_warning = ['tickers']
         attrs_optional = ['end_date']
 
-        with open(path, 'r') as f:
+        # first we load general appsettings, then service specific
+        with open(f"../{path}", 'r') as f:
             appsettings = json.load(f)
+
+        with open(path, 'r') as f:
+            appsettings.update(json.load(f))
 
         for _attr in attrs_mandatory_error:
             if _attr in appsettings.keys():
