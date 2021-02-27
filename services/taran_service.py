@@ -23,17 +23,20 @@ class TaranService(ABC):
     def appsettings_attrs_mandatory_warning(self) -> List[str]:
         return ["tickers"]
 
-    def _archive_current_logger(self, as_error: bool = False) -> None:
+    def _archive_current_logger(self, as_error: bool = False, delete_current: bool = True) -> None:
         if self._current_log_name in os.listdir(self._logs_path):
             old_file_name = self._logs_path / Path(self._current_log_name)
             new_file_name = self._logs_path / Path(f"log{'_error' if as_error else ''}_{self._now_str}.log")
-            copyfile(old_file_name, new_file_name)
+            copyfile(src=old_file_name, dst=new_file_name)
+            if delete_current:
+                os.remove(old_file_name)
 
     def _init_logger(self) -> None:
 
+        # TODO
         # opened log means error in the last run
-        if self._current_log_name in os.listdir(self._logs_path):
-            self._archive_current_logger(as_error=True)
+        # if self._current_log_name in os.listdir(self._logs_path):
+        #     self._archive_current_logger(as_error=True)
 
         # new current logger
         logging.basicConfig(
@@ -46,7 +49,6 @@ class TaranService(ABC):
     def _export_logger(self) -> None:
         logging.shutdown()
         self._archive_current_logger()
-        os.remove(self._logs_path / Path(self._current_log_name))
 
     def _load_and_unpack_appsettings(self, filename: str = "appsettings.json") -> None:
 
