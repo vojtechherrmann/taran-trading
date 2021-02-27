@@ -1,61 +1,26 @@
-import json
-import logging
 import os
-from typing import List
 from datetime import datetime, timedelta, time
 
 from ibapi.contract import Contract
 from pytz import timezone
 import pandas as pd
 
-from src.taran_wrapper import TaranWrapper
+from .src.taran_wrapper import TaranWrapper
+from ..taran_service import TaranService
 
 
-class InteractiveBrokersDownloader:
+class InteractiveBrokersDownloader(TaranService):
 
     def __init__(self):
-        self._init_logger()
-
-        self.tickers: List[str] = []
+        # appsettings
         self.end_date = datetime.today() - timedelta(days=1)
         self.history_length_days: int = None  # type: ignore
         self._load_and_unpack_appsettings()
 
+        super().__init__()
+
         self.wrapper = TaranWrapper()
         self.contract = Contract()
-
-    def _init_logger(self):
-        now = datetime.now().strftime("%Y_%m_%d_%H%M%S")
-        logging.basicConfig(filename=f"logs/api_{now}.log", level=logging.INFO)
-
-    def _load_and_unpack_appsettings(self, path: str = "appsettings.json") -> None:
-
-        attrs_mandatory_error = ['history_length_days']
-        attrs_mandatory_warning = ['tickers']
-        attrs_optional = ['end_date']
-
-        # first we load general appsettings, then service specific
-        with open(f"../{path}", 'r') as f:
-            appsettings = json.load(f)
-
-        with open(path, 'r') as f:
-            appsettings.update(json.load(f))
-
-        for _attr in attrs_mandatory_error:
-            if _attr in appsettings.keys():
-                self.__setattr__(_attr, appsettings[_attr])
-            else:
-                raise RuntimeError(f"No {_attr} provided in appsettings")
-
-        for _attr in attrs_mandatory_warning:
-            if _attr in appsettings.keys():
-                self.__setattr__(_attr, appsettings[_attr])
-            else:
-                logging.warning(f"No {_attr} provided in appsettings")
-
-        for _attr in attrs_optional:
-            if _attr in appsettings.keys():
-                self.__setattr__(_attr, appsettings[_attr])
 
     def run(self):
 

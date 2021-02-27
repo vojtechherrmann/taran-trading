@@ -1,4 +1,3 @@
-import datetime
 import threading
 import logging
 
@@ -20,11 +19,11 @@ class TaranApi(EWrapper, EClient):
 
     def error(self, reqId: TickerId, errorCode: int, errorString: str) -> None:
         super().error(reqId, errorCode, errorString)
-        error_type = "ERROR"
+        errStr = f"ReqId: {reqId}, Code: {errorCode} Msg: {errorString}"
         if errorCode in self._note_codes:
-            error_type = "NOTE"
-        errStr = f"{error_type} ReqId: {reqId}, Code: {errorCode} Msg: {errorString}"
-        logging.warning(errStr)
+            logging.info(errStr)
+        else:
+            logging.warning(errStr)
         print(errStr)
         with self.condition_lock:
             self.requestsDone.append(reqId)
